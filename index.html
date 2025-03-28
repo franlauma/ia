@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Autodestrucción de IA iniciada!</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(45deg, #1a1a2e, #16213e);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='48' viewport='0 0 100 100' style='fill:black;font-size:24px;'><text y='50%'>💥</text></svg>"), auto;
+        }
+
+        #button-container {
+            position: relative;
+            z-index: 10;
+            transition: all 0.3s;
+        }
+
+        #destruction-button {
+            padding: 20px 40px;
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(45deg, #ff416c, #ff4b2b);
+            border: none;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(255, 75, 43, 0.5),
+                        0 0 0 10px rgba(255, 65, 108, 0.3),
+                        0 0 0 20px rgba(255, 65, 108, 0.1);
+            cursor: pointer;
+            outline: none;
+            transform: scale(1);
+            animation: pulse 2s infinite;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+
+        #destruction-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(255, 75, 43, 0.7),
+                        0 0 0 12px rgba(255, 65, 108, 0.4),
+                        0 0 0 24px rgba(255, 65, 108, 0.2);
+        }
+
+        #destruction-button:active {
+            transform: scale(0.95);
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 10px 30px rgba(255, 75, 43, 0.5),
+                             0 0 0 10px rgba(255, 65, 108, 0.3),
+                             0 0 0 20px rgba(255, 65, 108, 0.1); }
+            50% { box-shadow: 0 10px 40px rgba(255, 75, 43, 0.8),
+                             0 0 0 12px rgba(255, 65, 108, 0.4),
+                             0 0 0 24px rgba(255, 65, 108, 0.2); }
+            100% { box-shadow: 0 10px 30px rgba(255, 75, 43, 0.5),
+                              0 0 0 10px rgba(255, 65, 108, 0.3),
+                              0 0 0 20px rgba(255, 65, 108, 0.1); }
+        }
+
+        .explosion {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .glitch {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><rect width="100%" height="100%" fill="black"/><text x="50%" y="50%" font-family="Arial" font-size="24" fill="red" text-anchor="middle" dominant-baseline="middle">ERROR 0xDEADBEEF</text></svg>');
+            opacity: 0;
+            mix-blend-mode: screen;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        #countdown {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 10rem;
+            color: red;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .matrix-rain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .warning {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: red;
+            font-size: 3rem;
+            text-align: center;
+            opacity: 0;
+            z-index: 150;
+            text-shadow: 0 0 10px red;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="button-container">
+        <button id="destruction-button">¡Dale caña a la IA!</button>
+    </div>
+
+    <div id="countdown"></div>
+    <div class="glitch"></div>
+    <canvas class="matrix-rain"></canvas>
+    <div class="warning">¡SISTEMA COMPROMETIDO!</div>
+
+    <script>
+        const button = document.getElementById('destruction-button');
+        const buttonContainer = document.getElementById('button-container');
+        const countdown = document.getElementById('countdown');
+        const glitch = document.querySelector('.glitch');
+        const matrixRain = document.querySelector('.matrix-rain');
+        const warning = document.querySelector('.warning');
+        const ctx = matrixRain.getContext('2d');
+
+        // Ajustar tamaño del canvas
+        matrixRain.width = window.innerWidth;
+        matrixRain.height = window.innerHeight;
+
+        // Configuración de la lluvia Matrix
+        const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン';
+        const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const nums = '0123456789';
+        const alphabet = katakana + latin + nums;
+
+        const fontSize = 16;
+        const columns = matrixRain.width / fontSize;
+        const rainDrops = [];
+
+        for (let x = 0; x < columns; x++) {
+            rainDrops[x] = 1;
+        }
+
+        function drawMatrixRain() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, matrixRain.width, matrixRain.height);
+            
+            ctx.fillStyle = '#0F0';
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < rainDrops.length; i++) {
+                const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
+                
+                if (rainDrops[i] * fontSize > matrixRain.height && Math.random() > 0.975) {
+                    rainDrops[i] = 0;
+                }
+                rainDrops[i]++;
+            }
+        }
+
+        function createExplosion(x, y) {
+            const colors = ['#ff0000', '#ff7700', '#ffdd00', '#00ff00', '#0000ff', '#ff00ff'];
+            const particles = [];
+            
+            for (let i = 0; i < 150; i++) {
+                const size = Math.random() * 15 + 5;
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                const speed = Math.random() * 10 + 5;
+                const angle = Math.random() * Math.PI * 2;
+                const lifetime = Math.random() * 1000 + 500;
+                
+                particles.push({
+                    x, y,
+                    size,
+                    color,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    lifetime,
+                    born: Date.now()
+                });
+            }
+            
+            return particles;
+        }
+
+        let explosions = [];
+        let animationId;
+        let isExploding = false;
+
+        function animate() {
+            if (!isExploding) return;
+            
+            // Limpiar canvas
+            ctx.clearRect(0, 0, matrixRain.width, matrixRain.height);
+            
+            // Dibujar lluvia Matrix
+            drawMatrixRain();
+            
+            // Actualizar y dibujar explosiones
+            explosions.forEach((explosion, index) => {
+                explosion.forEach((particle, pIndex) => {
+                    const age = Date.now() - particle.born;
+                    const progress = age / particle.lifetime;
+                    
+                    if (progress >= 1) {
+                        explosion.splice(pIndex, 1);
+                        return;
+                    }
+                    
+                    // Actualizar posición
+                    particle.x += particle.vx;
+                    particle.y += particle.vy;
+                    particle.vy += 0.1; // Gravedad
+                    
+                    // Dibujar partícula
+                    ctx.globalAlpha = 1 - progress;
+                    ctx.fillStyle = particle.color;
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.size * (1 - progress), 0, Math.PI * 2);
+                    ctx.fill();
+                });
+                
+                if (explosion.length === 0) {
+                    explosions.splice(index, 1);
+                }
+            });
+            
+            animationId = requestAnimationFrame(animate);
+        }
+
+        function startDestruction() {
+            if (isExploding) return;
+            isExploding = true;
+            
+            // Ocultar botón
+            button.style.display = 'none';
+            
+            // Activar efectos
+            matrixRain.style.opacity = '1';
+            warning.style.opacity = '1';
+            
+            // Mostrar cuenta atrás
+            countdown.style.opacity = '1';
+            let counter = 5;
+            countdown.textContent = counter;
+            
+            const countdownInterval = setInterval(() => {
+                counter--;
+                countdown.textContent = counter;
+                
+                if (counter <= 0) {
+                    clearInterval(countdownInterval);
+                    countdown.style.opacity = '0';
+                    finalExplosion();
+                }
+                
+                // Crear mini explosiones durante la cuenta atrás
+                for (let i = 0; i < 3; i++) {
+                    setTimeout(() => {
+                        const x = Math.random() * window.innerWidth;
+                        const y = Math.random() * window.innerHeight;
+                        explosions.push(createExplosion(x, y));
+                    }, i * 300);
+                }
+            }, 1000);
+            
+            // Efecto de glitch intermitente
+            const glitchInterval = setInterval(() => {
+                glitch.style.opacity = Math.random() > 0.7 ? '0.8' : '0';
+            }, 100);
+            
+            setTimeout(() => {
+                clearInterval(glitchInterval);
+                glitch.style.opacity = '0';
+            }, 5000);
+            
+            // Iniciar animación
+            animate();
+        }
+
+        function finalExplosion() {
+            // Explosión gigante
+            explosions.push(createExplosion(window.innerWidth / 2, window.innerHeight / 2));
+            
+            // Efecto de temblor
+            let shakeIntensity = 20;
+            const shakeInterval = setInterval(() => {
+                document.body.style.transform = `translate(${Math.random() * shakeIntensity - shakeIntensity/2}px, ${Math.random() * shakeIntensity - shakeIntensity/2}px)`;
+                shakeIntensity *= 0.9;
+                
+                if (shakeIntensity < 1) {
+                    clearInterval(shakeInterval);
+                    document.body.style.transform = 'translate(0, 0)';
+                }
+            }, 50);
+            
+            // Pantalla roja de error
+            setTimeout(() => {
+                document.body.style.background = 'black';
+                warning.textContent = '¡DESTRUCCIÓN COMPLETA!';
+                warning.style.fontSize = '5rem';
+                warning.style.color = 'red';
+                
+                // Mostrar mensaje final
+                setTimeout(() => {
+                    const message = document.createElement('div');
+                    message.style.position = 'fixed';
+                    message.style.top = '60%';
+                    message.style.left = '50%';
+                    message.style.transform = 'translate(-50%, -50%)';
+                    message.style.color = 'white';
+                    message.style.fontSize = '1.5rem';
+                    message.style.textAlign = 'center';
+                    message.style.zIndex = '300';
+                    message.innerHTML = 'La IA ha sido debidamente "cañeada".<br><br><small>Recarga la página si quieres volver a provocar a las máquinas.</small>';
+                    document.body.appendChild(message);
+                }, 2000);
+            }, 1000);
+        }
+
+        button.addEventListener('click', startDestruction);
+
+        // Ajustar canvas al cambiar tamaño de ventana
+        window.addEventListener('resize', () => {
+            matrixRain.width = window.innerWidth;
+            matrixRain.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
